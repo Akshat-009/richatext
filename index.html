@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06121A">
+<title>The Richa Test</title>
+<style>
+:root{--bg:#06121A;--panel:#0B1B29;--cream:#F4F0E8;--muted:#9BB0AE;--red:#D71920;--blue:#174EA6;--gold:#F2B84B;--absent:#263B4B;--line:rgba(244,240,232,.13)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--cream);font-family:Arial,Helvetica,sans-serif}
+body{min-height:100svh;padding:12px 9px calc(24px + env(safe-area-inset-bottom));display:flex;justify-content:center;overflow-x:hidden;-webkit-text-size-adjust:100%}
+main{width:min(100%,430px);position:relative;padding:0 2px}
+main:before,main:after{content:"";position:fixed;pointer-events:none;z-index:0;opacity:.13}
+main:before{width:230px;height:230px;left:-120px;top:80px;background:repeating-radial-gradient(circle at 100% 0,transparent 0 23px,rgba(244,240,232,.45) 24px 25px,transparent 26px 46px);transform:rotate(12deg)}
+main:after{width:250px;height:250px;right:-140px;bottom:130px;background:repeating-radial-gradient(circle at 0 100%,transparent 0 25px,rgba(23,78,166,.5) 26px 27px,transparent 28px 50px);transform:rotate(-9deg)}
+header{text-align:center;padding-top:4px;position:relative;z-index:1}
+.eyebrow{margin:0 0 9px;font-size:8px;letter-spacing:.23em;color:var(--muted);font-weight:800}
+h1{margin:0 auto;font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,11.5vw,58px);line-height:.88;letter-spacing:-.055em;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
+.title-line{display:block}.soft{color:var(--cream)}.accent{color:var(--red);font-style:italic}.heart{color:var(--gold);font-size:.42em;vertical-align:top;margin-left:2px}
+.sub{width:min(94%,360px);margin:12px auto 0;color:var(--muted);font-size:12px;line-height:1.4;text-align:center}
+.toolbar{display:flex;justify-content:center;margin:10px 0 7px;position:relative;z-index:2}
+.hint{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:10px;padding:9px 16px;font-size:11px;cursor:pointer}.hint:disabled{opacity:.45}
+#msg{min-height:18px;text-align:center;color:var(--gold);font-size:11px;font-weight:700;margin:1px auto 3px}
+#clueCard{display:block;width:min(94%,380px);margin:4px auto 9px;padding:14px 15px;border:1px solid rgba(244,240,232,.16);border-radius:13px;background:rgba(11,27,41,.82);color:var(--cream);font-size:clamp(14px,4.2vw,18px);font-weight:700;line-height:1.35;text-align:center;letter-spacing:-.01em;box-shadow:0 8px 24px rgba(0,0,0,.14)}#clueCard.show{display:block}.clue-label{display:block;color:var(--gold);font-weight:800;letter-spacing:.16em;font-size:8px;margin:0 0 6px;text-transform:uppercase}
+.legend{width:min(100%,360px);margin:6px auto 8px;padding:7px 5px;border:1px solid var(--line);border-radius:10px;display:flex;justify-content:center;align-items:center;gap:4px;color:var(--muted);font-size:clamp(8px,2.5vw,9px);white-space:nowrap}.legend b{color:var(--cream);letter-spacing:.1em;font-size:8px;margin-right:3px}.sw{width:17px;height:17px;border-radius:4px;display:grid;place-items:center;font-weight:800;color:var(--cream);font-size:9px}.legend .correct{background:var(--red)!important;color:#fff!important}.legend .present{background:var(--gold)!important;color:#17140d!important}.legend .absent{background:var(--absent)!important;color:#91a19e!important}
+.round{font-size:8px;letter-spacing:.19em;color:var(--muted);text-align:center;margin:7px 0 6px}
+#board{width:min(92vw,335px);margin:7px auto 9px;display:flex;flex-direction:column;gap:5px;position:relative;z-index:2;visibility:visible;opacity:1}
+.row{width:100%;display:grid;gap:5px}
+.tile{width:100%;aspect-ratio:1/1;min-width:0;min-height:0;border:1px solid rgba(244,240,232,.18);border-radius:5px;background:#0B1B29;display:grid;place-items:center;font-size:clamp(17px,5.4vw,23px);font-weight:800;letter-spacing:.02em;color:var(--cream);user-select:none;transform-style:preserve-3d}
+.tile.filled{border-color:rgba(244,240,232,.48);animation:pop .11s ease-out}
+.tile.flip{animation:flip .55s ease both}
+@keyframes pop{50%{transform:scale(1.045)}}
+@keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(90deg)}55%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.tile.correct,.key.correct{background:#D71920!important;color:#fff!important;border-color:#D71920!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.tile.present,.key.present{background:#F2B84B!important;color:#111!important;border-color:#F2B84B!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.tile.absent,.key.absent{background:#263B4B!important;color:#9BB0AE!important;border-color:#263B4B!important}
+#keyboard{width:min(100%,400px);margin:7px auto 0;display:flex;flex-direction:column;gap:5px;position:relative;z-index:5}
+.krow{display:flex;justify-content:center;gap:4px;width:100%}.krow.middle{padding:0 4.5%}.spacer-key{flex:.5;min-width:0}
+.key{appearance:none;-webkit-appearance:none;flex:1;min-width:0;min-height:41px;height:41px;border:0;border-radius:6px;background:#152C3B;color:var(--cream);font-weight:800;font-size:clamp(9px,2.8vw,11px);cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}.key.wide{flex:1.55;font-size:8px}.key.back{font-size:17px}.key:active{transform:scale(.97)}
+.keyboard-label{text-align:center;margin:2px 0 3px;color:#627A7A;font-size:7px;letter-spacing:.18em;font-weight:800}.footer{text-align:center;margin:10px 0 0;color:#627A7A;font-size:7px;letter-spacing:.15em;text-transform:uppercase}
+#transition,#reveal{display:none;position:fixed;inset:0;background:rgba(3,9,14,.985);z-index:20;align-items:center;justify-content:center;padding:20px;overflow:hidden}
+#transition.show,#reveal.show{display:flex}
+.transition-hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0}
+#transition.show .transition-hearts,#reveal.show .transition-hearts{opacity:1}
+.transition-heart{position:absolute;bottom:-35px;color:var(--red);font-size:18px;opacity:0;will-change:transform,opacity}
+.transition-heart:nth-child(1){left:7%;font-size:15px}.transition-heart:nth-child(2){left:18%;font-size:11px}.transition-heart:nth-child(3){left:30%;font-size:20px}.transition-heart:nth-child(4){left:43%;font-size:14px}.transition-heart:nth-child(5){left:55%;font-size:22px}.transition-heart:nth-child(6){left:68%;font-size:13px}.transition-heart:nth-child(7){left:81%;font-size:19px}.transition-heart:nth-child(8){left:92%;font-size:12px}
+#transition.show .transition-heart:nth-child(1){animation:floatHeart 3.4s .05s ease-out forwards}
+#transition.show .transition-heart:nth-child(2){animation:floatHeart 3.1s .35s ease-out forwards}
+#transition.show .transition-heart:nth-child(3){animation:floatHeart 3.6s .15s ease-out forwards}
+#transition.show .transition-heart:nth-child(4){animation:floatHeart 3.2s .6s ease-out forwards}
+#transition.show .transition-heart:nth-child(5){animation:floatHeart 3.8s .25s ease-out forwards}
+#transition.show .transition-heart:nth-child(6){animation:floatHeart 3.3s .7s ease-out forwards}
+#transition.show .transition-heart:nth-child(7){animation:floatHeart 3.5s .45s ease-out forwards}
+#transition.show .transition-heart:nth-child(8){animation:floatHeart 3s .9s ease-out forwards}
+#reveal.show .transition-heart:nth-child(1){animation:floatHeart 4.1s .1s ease-out forwards}
+#reveal.show .transition-heart:nth-child(2){animation:floatHeart 3.7s .55s ease-out forwards}
+#reveal.show .transition-heart:nth-child(3){animation:floatHeart 4.3s .25s ease-out forwards}
+#reveal.show .transition-heart:nth-child(4){animation:floatHeart 3.8s .8s ease-out forwards}
+#reveal.show .transition-heart:nth-child(5){animation:floatHeart 4.5s .4s ease-out forwards}
+#reveal.show .transition-heart:nth-child(6){animation:floatHeart 4s .95s ease-out forwards}
+#reveal.show .transition-heart:nth-child(7){animation:floatHeart 4.2s .65s ease-out forwards}
+#reveal.show .transition-heart:nth-child(8){animation:floatHeart 3.9s 1.05s ease-out forwards}
+@keyframes floatHeart{0%{transform:translate3d(0,0,0) scale(.55) rotate(-8deg);opacity:0}12%{opacity:.8}55%{opacity:.55}100%{transform:translate3d(12px,-105vh,0) scale(1.15) rotate(14deg);opacity:0}}
+.web-line{position:absolute;width:260px;height:260px;border-radius:50%;border:1px solid rgba(244,240,232,.11);opacity:0;will-change:transform,opacity}
+.web-line.one{left:-155px;top:-115px}.web-line.two{right:-155px;bottom:-120px}
+#transition.show .web-line{animation:webReveal 1.25s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes webReveal{0%{opacity:0;transform:scale(.35) rotate(-10deg)}35%{opacity:.8}100%{opacity:.42;transform:scale(1.12) rotate(7deg)}}
+.web-line:before,.web-line:after{content:"";position:absolute;inset:15%;border-radius:50%;border:1px solid rgba(244,240,232,.08)}.web-line:after{inset:34%}
+.transition-heart-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:8px;opacity:0;z-index:2;pointer-events:none}
+.transition-heart-center span{color:var(--red);font-size:31px;display:block;will-change:transform,opacity}
+#transition.show .transition-heart-center{opacity:1}
+#transition.show .transition-heart-center span{animation:centerHeart 1.35s cubic-bezier(.2,.75,.3,1) forwards}
+#transition.show .transition-heart-center span:nth-child(2){animation-delay:.1s}#transition.show .transition-heart-center span:nth-child(3){animation-delay:.2s}
+@keyframes centerHeart{0%{opacity:0;transform:translateY(30px) scale(.25)}20%{opacity:1}55%{opacity:1;transform:translateY(-8px) scale(1.18)}100%{opacity:0;transform:translateY(-72px) scale(1.45)}}
+.card{position:relative;width:min(92vw,410px);background:#0B1B29;border:1px solid var(--line);border-radius:18px;padding:25px 20px;text-align:center;box-shadow:0 20px 65px rgba(0,0,0,.55);z-index:3}
+.transition-card{opacity:0;transform:translate3d(0,22px,0) scale(.96);pointer-events:none}
+#transition.card-ready .transition-card{animation:cardIn .65s cubic-bezier(.2,.85,.2,1) forwards;pointer-events:auto}
+@keyframes cardIn{0%{opacity:0;transform:translate3d(0,22px,0) scale(.96)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+.card .kicker{font-size:8px;letter-spacing:.2em;color:var(--gold);font-weight:800}.transition-round{margin-top:7px;font-size:8px;letter-spacing:.18em;color:var(--muted)}
+.card h2{font:italic 30px/1.05 Georgia,"Times New Roman",serif;margin:12px 0 9px;color:var(--cream)}.card p{color:var(--muted);font-size:12px;line-height:1.5}.card button{margin-top:10px;border:1px solid rgba(244,240,232,.16);background:rgba(215,25,32,.1);color:var(--cream);border-radius:10px;padding:11px 18px;font-weight:800;cursor:pointer;min-height:43px}
+#reveal{overflow:auto;opacity:0}
+#reveal.show{animation:finalFade .55s ease forwards}
+@keyframes finalFade{from{opacity:0}to{opacity:1}}
+.reveal-card{max-width:440px;opacity:0;transform:translate3d(0,25px,0) scale(.96)}
+#reveal.show .reveal-card{animation:finalCardIn .75s .35s cubic-bezier(.2,.85,.2,1) forwards}
+@keyframes finalCardIn{from{opacity:0;transform:translate3d(0,25px,0) scale(.96)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+#reveal .transition-heart-center{top:47%}
+#reveal.show .transition-heart-center{opacity:1}
+#reveal.show .transition-heart-center span{animation:centerHeartFinal 1.5s cubic-bezier(.2,.75,.3,1) forwards}
+#reveal.show .transition-heart-center span:nth-child(2){animation-delay:.12s}#reveal.show .transition-heart-center span:nth-child(3){animation-delay:.24s}
+@keyframes centerHeartFinal{0%{opacity:0;transform:translateY(35px) scale(.2)}22%{opacity:1;transform:translateY(0) scale(1)}45%{opacity:1;transform:translateY(-8px) scale(1.28)}100%{opacity:0;transform:translateY(-95px) scale(1.55)}}
+.report{font-size:8px;letter-spacing:.2em;color:var(--gold);font-weight:800}.headline{font:italic 28px/1.08 Georgia,"Times New Roman",serif;margin:13px 0}.headline span{color:var(--red)}.note{color:var(--muted);font-size:12px;line-height:1.5}.proposal{margin-top:16px;border:1px solid rgba(242,184,75,.25);border-radius:13px;padding:14px}.proposal-label{font-size:8px;letter-spacing:.16em;color:var(--gold);font-weight:800}.proposal-title{font:italic 22px/1.05 Georgia,"Times New Roman",serif;margin:8px 0}.proposal-copy{color:var(--muted);font-size:11px;line-height:1.45}.proposal button{width:100%;margin-top:11px;background:var(--gold);color:#10100b;border:0;border-radius:9px;padding:11px;font-weight:800}.sign{color:#627A7A;font-size:10px;line-height:1.4;margin-top:14px}.accepted{display:none;color:var(--gold);font-size:11px;font-weight:800;line-height:1.45;margin-top:12px}.accepted.show{display:block}
+.shake{animation:shake .3s ease}@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.waffle-mode .web-line{border-color:rgba(242,184,75,.13)}
+.waffle-mode .web-line:before,.waffle-mode .web-line:after{border-color:rgba(242,184,75,.09)}
+@media(max-width:380px){body{padding:9px 7px calc(20px + env(safe-area-inset-bottom))}.eyebrow{margin-bottom:7px}.sub{font-size:11px;margin-top:10px}.key{min-height:39px;height:39px}.headline{font-size:25px}}
+@media(max-height:730px) and (max-width:500px){.sub{display:none}.toolbar{margin:7px 0 5px}.round{margin:5px 0}.tile{font-size:17px}.key{min-height:38px;height:38px}.footer{margin-top:7px}}
+</style>
+</head>
+<body>
+<main id="app">
+<header>
+<p class="eyebrow">A LITTLE SOMETHING</p>
+<h1><span class="title-line soft">A LITTLE</span><span class="title-line accent">SOMETHING<span class="heart">♥</span></span></h1>
+<p class="sub">A tiny compatibility investigation. Please answer honestly. Or at least entertainingly.</p>
+</header>
+
+<div id="clueCard" class="show"><span class="clue-label" id="clueLabel">CURRENT CLUE</span><span id="clueText">The person behind the mask.</span></div>
+<div id="msg"></div>
+<div class="legend" aria-label="How to play">
+  <b>HOW TO PLAY</b>
+  <span class="sw correct">A</span><span>right spot</span>
+  <span class="sw present">A</span><span>wrong spot</span>
+  <span class="sw absent">A</span><span>not in word</span>
+</div>
+<div class="round" id="roundLabel">ROUND 01</div>
+<div id="board" aria-label="Wordle board"></div>
+<div class="keyboard-label">TAP TO TYPE · NO GENERIC ANSWERS</div>
+<div id="keyboard" aria-label="On-screen keyboard">
+<div class="krow">
+<button class="key" data-key="Q">Q</button><button class="key" data-key="W">W</button><button class="key" data-key="E">E</button><button class="key" data-key="R">R</button><button class="key" data-key="T">T</button><button class="key" data-key="Y">Y</button><button class="key" data-key="U">U</button><button class="key" data-key="I">I</button><button class="key" data-key="O">O</button><button class="key" data-key="P">P</button>
+</div>
+<div class="krow middle">
+<span class="spacer-key"></span><button class="key" data-key="A">A</button><button class="key" data-key="S">S</button><button class="key" data-key="D">D</button><button class="key" data-key="F">F</button><button class="key" data-key="G">G</button><button class="key" data-key="H">H</button><button class="key" data-key="J">J</button><button class="key" data-key="K">K</button><button class="key" data-key="L">L</button><span class="spacer-key"></span>
+</div>
+<div class="krow">
+<button class="key wide" data-key="ENTER">ENTER</button><button class="key" data-key="Z">Z</button><button class="key" data-key="X">X</button><button class="key" data-key="C">C</button><button class="key" data-key="V">V</button><button class="key" data-key="B">B</button><button class="key" data-key="N">N</button><button class="key" data-key="M">M</button><button class="key wide back" data-key="BACK">⌫</button>
+</div>
+</div>
+<div class="footer">made for one very specific smile ✦</div>
+</main>
+
+<div id="transition">
+<div class="web-line one"></div><div class="web-line two"></div>
+<div class="transition-hearts"><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span></div>
+<div class="transition-heart-center"><span>♥</span><span>♥</span><span>♥</span></div>
+<div class="card transition-card">
+<div class="kicker">ROUND CLEARED ♥</div>
+<div class="transition-round" id="transitionRound">ROUND 01 CLEARED</div>
+<h2 id="transitionTitle">Okay, this is promising.</h2>
+<p id="transitionText"></p>
+<button id="continueBtn">Continue →</button>
+</div>
+</div>
+
+<div id="reveal">
+<div class="web-line one"></div><div class="web-line two"></div>
+<div class="transition-hearts"><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span><span class="transition-heart">♥</span></div>
+<div class="transition-heart-center"><span>♥</span><span>♥</span><span>♥</span></div>
+<div class="card reveal-card">
+<div class="report">FINAL RESULT</div>
+<div class="headline"><span>APPLICATION STATUS: HIGHLY INTERESTED. ❤️</span></div>
+<div class="note">
+Three things have now been officially established:<br><br>
+🕷️ Excellent Spider-Man taste.<br>
+🧇 Strong waffle credentials.<br>
+😊 And a smile that is frankly making this investigation difficult to conduct objectively.
+<br><br><strong>Based on the evidence, I believe there is only one reasonable next step.</strong>
+</div>
+<div class="proposal">
+<div class="proposal-label">FINAL ROUND</div>
+<div class="proposal-title">One waffle.<br>One conversation.<br>And preferably that smile in person.</div>
+<div class="proposal-copy"></div>
+<button id="acceptBtn">Proceed to the final round? ♡</button>
+<div class="accepted" id="accepted">Application accepted. Interview scheduled. 🧇♡<br><br>Location: somewhere with waffles.</div>
+</div>
+<div class="sign">No generic answers were used in the making of this investigation.<br>Probably. ♡</div>
+</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const rounds = [
+    {
+      word: "PETER",
+      label: "ROUND 01",
+      clues: [
+        "The person behind the mask.",
+        "Smart, awkward, slightly chaotic.",
+        "Bitten by something he probably should've avoided.",
+        "Tobey-era favourite.",
+        "Five letters. Starts with P.",
+        "Your answer should definitely not be ‘Andrew.’ 😂"
+      ],
+      transitionTitle: "Compatibility check: passed.",
+      transitionText: "Spider-Man taste confirmed.<br>That was the easy compatibility check.",
+      button: "Continue →"
+    },
+    {
+      word: "WAFFLE",
+      label: "ROUND 02 · BREAKFAST",
+      clues: [
+        "The correct answer to ‘what should we eat?’",
+        "Crispy outside, soft inside.",
+        "Somehow makes breakfast feel like a personality trait.",
+        "Six letters.",
+        "Starts with W.",
+        "And apparently something I now need to compete with. 🧇"
+      ],
+      transitionTitle: "Okay, this is getting specific.",
+      transitionText: "Spider-Man approved.<br>Waffle preferences approved.<br>We may be onto something.",
+      button: "Continue →"
+    },
+    {
+      word: "SMILE",
+      label: "ROUND 03 · THE BIASED ROUND",
+      clues: [
+        "The reason this entire investigation may have become biased. :)",
+        "Five letters.",
+        "Technically harmless.",
+        "Potentially very distracting.",
+        "Makes photographs significantly more unfair.",
+        "Starts with S."
+      ]
+    }
+  ];
+
+  const MAX_ROWS = 6;
+  let round = 0;
+  let currentRow = 0;
+  let guess = "";
+  let locked = false;
+  let hintUsed = false;
+
+  const board = document.getElementById("board");
+  const keyboard = document.getElementById("keyboard");
+  const roundLabel = document.getElementById("roundLabel");
+  const clueText = document.getElementById("clueText");
+  const clueLabel = document.getElementById("clueLabel");
+  const msg = document.getElementById("msg");
+  const clueCard = document.getElementById("clueCard");
+  const transition = document.getElementById("transition");
+  const reveal = document.getElementById("reveal");
+  const transitionRound = document.getElementById("transitionRound");
+  const transitionTitle = document.getElementById("transitionTitle");
+  const transitionText = document.getElementById("transitionText");
+  const continueBtn = document.getElementById("continueBtn");
+  const acceptBtn = document.getElementById("acceptBtn");
+  const accepted = document.getElementById("accepted");
+
+  function makeBoard() {
+    const wordLength = rounds[round].word.length;
+    board.innerHTML = "";
+    board.style.setProperty("--cols", wordLength);
+
+    for (let r = 0; r < MAX_ROWS; r++) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.gridTemplateColumns = "repeat(" + wordLength + ", minmax(0, 1fr))";
+
+      for (let c = 0; c < wordLength; c++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.id = "tile-" + r + "-" + c;
+        row.appendChild(tile);
+      }
+
+      board.appendChild(row);
+    }
+  }
+
+  function resetKeyboard() {
+    keyboard.querySelectorAll(".key").forEach(function (key) {
+      key.classList.remove("correct", "present", "absent");
+    });
+  }
+
+  function startRound(index) {
+    round = index;
+    currentRow = 0;
+    guess = "";
+    locked = false;
+    roundLabel.textContent = rounds[round].label;
+    clueLabel.textContent = "CURRENT CLUE";
+    clueText.textContent = rounds[round].clues[0];
+    clueCard.classList.add("show");
+    msg.textContent = "";
+    makeBoard();
+    resetKeyboard();
+
+    document.body.classList.toggle("waffle-mode", round === 1);
+    document.body.classList.toggle("smile-mode", round === 2);
+  }
+
+  function typeLetter(letter) {
+    if (locked) return;
+    if (guess.length >= rounds[round].word.length) return;
+
+    guess += letter;
+    const tile = document.getElementById(
+      "tile-" + currentRow + "-" + (guess.length - 1)
+    );
+
+    if (tile) {
+      tile.textContent = letter;
+      tile.classList.add("filled");
+    }
+  }
+
+  function backspace() {
+    if (locked || guess.length === 0) return;
+
+    const tile = document.getElementById(
+      "tile-" + currentRow + "-" + (guess.length - 1)
+    );
+
+    if (tile) {
+      tile.textContent = "";
+      tile.classList.remove("filled");
+    }
+
+    guess = guess.slice(0, -1);
+  }
+
+  function evaluate(word, target) {
+    const result = new Array(target.length).fill("absent");
+    const used = new Array(target.length).fill(false);
+
+    for (let i = 0; i < target.length; i++) {
+      if (word[i] === target[i]) {
+        result[i] = "correct";
+        used[i] = true;
+      }
+    }
+
+    for (let i = 0; i < target.length; i++) {
+      if (result[i] === "correct") continue;
+
+      for (let j = 0; j < target.length; j++) {
+        if (!used[j] && word[i] === target[j]) {
+          result[i] = "present";
+          used[j] = true;
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  function updateKeyboard(letter, state) {
+    const key = keyboard.querySelector('[data-key="' + letter + '"]');
+    if (!key) return;
+
+    if (
+      state === "correct" ||
+      (state === "present" && !key.classList.contains("correct")) ||
+      (state === "absent" &&
+        !key.classList.contains("correct") &&
+        !key.classList.contains("present"))
+    ) {
+      key.classList.remove("correct", "present", "absent");
+      key.classList.add(state);
+    }
+  }
+
+  function submit() {
+    if (locked) return;
+
+    const target = rounds[round].word;
+
+    if (guess.length !== target.length) {
+      msg.textContent = "Need " + target.length + " letters.";
+      return;
+    }
+
+    locked = true;
+
+    const result = evaluate(guess, target);
+    const submitted = guess;
+
+    for (let i = 0; i < target.length; i++) {
+      const tile = document.getElementById(
+        "tile-" + currentRow + "-" + i
+      );
+
+      if (!tile) continue;
+
+      // Wordle-style reveal: tiles flip one-by-one, then lock into their
+      // final color at the midpoint of the flip. Remove any previous state
+      // first so a tile can never carry two result colors at once.
+      setTimeout(function () {
+        tile.classList.remove("correct", "present", "absent");
+        tile.classList.add("flip");
+
+        setTimeout(function () {
+          tile.classList.remove("correct", "present", "absent");
+          tile.classList.add(result[i]);
+          updateKeyboard(submitted[i], result[i]);
+        }, 275);
+      }, i * 120);
+    }
+
+    setTimeout(function () {
+      if (submitted === target) {
+        if (round < rounds.length - 1) {
+          showTransition();
+        } else {
+          showFinal();
+        }
+        return;
+      }
+
+      if (currentRow === MAX_ROWS - 1) {
+        msg.textContent = "Okay, I'm going to pretend that was intentional. 😂";
+        locked = false;
+        return;
+      }
+
+      const clueIndex = Math.min(
+        currentRow + 1,
+        rounds[round].clues.length - 1
+      );
+
+      msg.textContent = [
+        "Interesting choice.",
+        "Bold. Not correct though.",
+        "That had potential.",
+        "Okay, I respect the confidence.",
+        "Please reconsider your life choices. 😂"
+      ][Math.min(currentRow, 4)];
+
+      currentRow++;
+      guess = "";
+
+      // Each wrong guess naturally unlocks the next clue.
+      clueLabel.textContent = "CLUE " + Math.min(currentRow + 1, rounds[round].clues.length);
+      clueText.textContent = rounds[round].clues[clueIndex];
+      clueCard.classList.add("show");
+
+      locked = false;
+    }, target.length * 90 + 500);
+  }
+
+  function showTransition() {
+    const r = rounds[round];
+
+    transitionRound.textContent =
+      r.label + " CLEARED";
+    transitionTitle.textContent = r.transitionTitle;
+    transitionText.innerHTML = r.transitionText;
+    continueBtn.textContent = r.button;
+
+    transition.classList.remove("show", "heart-phase", "card-ready");
+    void transition.offsetWidth;
+
+    transition.classList.add("show");
+
+    setTimeout(function () {
+      transition.classList.add("heart-phase");
+    }, 350);
+
+    setTimeout(function () {
+      transition.classList.add("card-ready");
+    }, 1500);
+  }
+
+  function showFinal() {
+    reveal.classList.remove("show");
+    void reveal.offsetWidth;
+    reveal.classList.add("show");
+  }
+
+  keyboard.addEventListener("pointerdown", function (event) {
+    const key = event.target.closest(".key");
+    if (!key) return;
+
+    event.preventDefault();
+
+    const value = key.dataset.key;
+
+    if (value === "ENTER") {
+      submit();
+    } else if (value === "BACK") {
+      backspace();
+    } else {
+      typeLetter(value);
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (transition.classList.contains("show") ||
+        reveal.classList.contains("show")) return;
+
+    if (event.key === "Enter") {
+      submit();
+    } else if (event.key === "Backspace") {
+      backspace();
+    } else if (/^[a-zA-Z]$/.test(event.key)) {
+      typeLetter(event.key.toUpperCase());
+    }
+  });
+
+  continueBtn.addEventListener("click", function () {
+    transition.classList.remove("show", "heart-phase", "card-ready");
+    startRound(round + 1);
+  });
+
+  acceptBtn.addEventListener("click", function () {
+    acceptBtn.style.display = "none";
+    accepted.classList.add("show");
+  });
+
+  startRound(0);
+})();
+</script>
+</body>
+</html>
